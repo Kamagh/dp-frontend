@@ -1,87 +1,64 @@
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native'
-import React from 'react'
-import Colors from "../../Utils/Colors";
-import * as WebBrowser from "expo-web-browser";
-import { useWarmUpBrowser } from '../../../hooks/useWarmUpBrowser';
-import {useOAuth} from "@clerk/clerk-expo";
+import React, {useState} from 'react';
+import {View, Text, TextInput, Button, StyleSheet, Image} from 'react-native';
+import { useAuth } from '../../Context/AuthContext'; // Ensure the path is correct based on your project structure
 
-WebBrowser.maybeCompleteAuthSession();
+const LoginScreen = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const { onLogin, onRegister } = useAuth();
 
-export default function LoginScreen() {
-    useWarmUpBrowser();
- 
-    const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
-
-    const onPress = async () => {
-        try {
-            const { createdSessionId, signIn, signUp, setActive } =
-                await startOAuthFlow();
-
-            if (createdSessionId) {
-                setActive({ session: createdSessionId });
-            } else {
-                // Use signIn or signUp for next steps such as MFA
-            }
-        } catch (err) {
-            console.error("OAuth error", err);
+    const login = async () => {
+        const result = await onLogin(email, password);
+        if (result && result.error) {
+            alert(result.msg);
         }
-    }
+    };
+
+    const register = async () => {
+        const result = await onRegister(email, password);
+        if (result && result.error) {
+            alert(result.msg);
+        } else {
+            login();
+        }
+    };
+
+
     return (
-        <View style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: 50
-        }}>
-            <Image source={require('./../../../assets/icon.png')} style={styles.logo}/>
-            <Image source={require('./../../../assets/logo.png')} style={styles.bgImage}/>
-            <View style={{padding: 20}}>
-                <Text style={styles.heading}>Your Ultimate EV chargin</Text>
-                <Text style={styles.desc}>Find EV charging station near you, plan trip an</Text>
+        <View style={styles.container}>
+            <Image source={{}} style={styles.image}/>
+            <View style={styles.form}>
+                <TextInput style={styles.input} placeholder={'Email'} onChangeText={(text) => setEmail(text)} value={email}/>
+                <TextInput style={styles.input} placeholder={'Password'} secureTextEntry={true} onChangeText={(text) => setPassword(text)} value={password}/>
+                <Button onPress={login} title={'Sign in'}/>
+                <Button onPress={register} title={'Sign up'}/>
             </View>
-            <TouchableOpacity style={styles.button} onPress={onPress}>
-                <Text style={{
-                    color: Colors.WHITE,
-                    textAlign: 'center',
-                    fontFamily: 'outfit',
-                    fontSize: 17
-                }}>Login With Google</Text>
-            </TouchableOpacity>
         </View>
-    )
-}
+    );
+};
 
 
 const styles = StyleSheet.create({
-    logo: {
-        width: 200,
-        height: 40,
-        objectFit: 'contain',
+    image: {
+        width: '50%',
+        height: '50%',
+        resizeMode: 'contain',
     },
-    bgImage: {
+    form: {
+        gap: 10,
+        width: '60%',
+    },
+    input: {
+        height: 44,
+        borderWidth: 1,
+        borderRadius: 4,
+        padding: 10,
+        backgroundColor: '#fff',
+    },
+    container: {
+        alignItems: 'center',
         width: '100%',
-        height: 220,
-        marginTop: 20,
-        objectFit: 'cover',
     },
-    heading: {
-        fontSize: 25,
-        fontFamily: 'outfit-bold',
-        textAlign: 'center',
-        marginTop: 20
-    },
-    desc: {
-        fontSize: 17,
-        fontFamily: 'outfit',
-        marginTop: 15,
-        textAlign: 'center',
-        color: Colors.gray,
-    },
-    button: {
-        backgroundColor: Colors.PRIMARY,
-        padding: 16,
-        display: 'flex',
-        borderRadius: 99,
-        marginTop: 40,
-    }
-})
+});
+
+export default LoginScreen;
