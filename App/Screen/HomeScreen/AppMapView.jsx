@@ -1,4 +1,4 @@
-import {Alert, Image, StyleSheet, TouchableOpacity, View, Text} from 'react-native'
+import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native'
 import React, {useContext, useEffect, useRef, useState} from 'react'
 import MapView, {Callout, Marker, PROVIDER_GOOGLE} from "react-native-maps";
 import MapViewStyle from '../../Utils/MapViewStyle.json'
@@ -6,6 +6,7 @@ import {UserLocationContext} from "../../Context/UserLocationContext";
 import mockPharmacyData from "../../data/mockPharmacyData";
 import {useNavigation} from "@react-navigation/native";
 import ProductModal from "./components/ProductModal";
+import {MaterialIcons} from "@expo/vector-icons";
 
 
 export default function AppMapView({placeList}) {
@@ -99,6 +100,7 @@ export default function AppMapView({placeList}) {
                     }}
                     title={pharmacy.name}
                 >
+                    <MaterialIcons name="local-pharmacy" size={40} color="green" />
                     <Callout onPress={() => handleMarkerPress(pharmacy)}>
                         <View style={styles.calloutView}>
                             <Image

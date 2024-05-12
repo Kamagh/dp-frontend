@@ -9,7 +9,8 @@ import TabNavigation from "./App/Navigations/TabNavigation";
 import * as Location from 'expo-location';
 import {UserLocationContext} from "./App/Context/UserLocationContext";
 import {AuthProvider, useAuth} from './App/Context/AuthContext';
-import LoginScreen from "./App/Screen/LoginScreen/LoginScreen"; // Ensure this path is correct
+import LoginScreen from "./App/Screen/LoginScreen/LoginScreen";
+import {CartProvider} from "./App/Context/CartContext"; // Ensure this path is correct
 
 // Import custom fonts, replace these paths with your actual font files
 const customFonts = {
@@ -23,19 +24,19 @@ const Stack = createNativeStackNavigator();
 SplashScreen.preventAutoHideAsync();
 
 export const Layout = () => {
-    const { authState, onLogout } = useAuth();  // Make sure useAuth() provides these
+    const {authState, onLogout} = useAuth();  // Make sure useAuth() provides these
 
     return (
         <NavigationContainer>
             <Stack.Navigator>
                 {/*{authState?.authenticated ? (*/}
-                    <Stack.Screen
-                        name="Home"
-                        component={TabNavigation}  // Make sure this component is correctly imported or defined
-                        options={{
-                            headerRight: () => <Button onPress={onLogout} title="Sign Out" />
-                        }}
-                    />
+                <Stack.Screen
+                    name="Emergency Pharmacies"
+                    component={TabNavigation}  // Make sure this component is correctly imported or defined
+                    options={{
+                        headerRight: () => <Button onPress={onLogout} title="Sign Out"/>
+                    }}
+                />
                 {/*) : (*/}
                 {/*    <Stack.Screen name="Login" component={LoginScreen} /> // Adjust the LoginScreen import based on your app setup*/}
                 {/*)}*/}
@@ -51,7 +52,7 @@ export default function App() {
 
     useEffect(() => {
         (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
+            let {status} = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
                 setErrorMsg('Permission to access location was denied');
                 return;
@@ -73,11 +74,13 @@ export default function App() {
 
     return (
         <AuthProvider>
-            <UserLocationContext.Provider value={{ location, setLocation }}>
-                <View style={styles.container} onLayout={onLayoutRootView}>
-                    <Layout />
-                    <StatusBar style="auto" />
-                </View>
+            <UserLocationContext.Provider value={{location, setLocation}}>
+                <CartProvider>
+                    <View style={styles.container} onLayout={onLayoutRootView}>
+                        <Layout/>
+                        <StatusBar style="auto"/>
+                    </View>
+                </CartProvider>
             </UserLocationContext.Provider>
         </AuthProvider>
     );

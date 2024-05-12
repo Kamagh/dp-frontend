@@ -1,7 +1,7 @@
 import React from 'react'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from "../Screen/HomeScreen/HomeScreen";
-import ProfileScreen from "../Screen/ProfileScreen/ProfileScreen";
+import CartScreen from "../Screen/CartScreen/CartScreen";
 import { Ionicons } from '@expo/vector-icons';
 import Colors from "../Utils/Colors";
 
@@ -24,8 +24,15 @@ export default function TabNavigation() {
                 }}
             />
             <Tab.Screen
-                name='profile'
-                component={ProfileScreen}
+                name='Cart'
+                component={CartScreen}
+                options={{
+                    tabBarLabel: 'Cart',
+                    tabBarActiveTintColor: Colors.PRIMARY,
+                    tabBarIcon:({color, size}) => (
+                        <Ionicons name="cart" size={size} color={color} />
+                    )
+                }}
             />
         </Tab.Navigator>
     )
