@@ -3,9 +3,11 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'my-jwt';
-// const API_URL = 'https://localhost:8080';
-const API_URL = 'https://api.developerbetterapps.com';
+const API_URL = 'https://localhost:8080';
 const AuthContext = createContext({});
+
+// const API_URL = 'https://api.developerbetterapps.com';
+
 
 export const useAuth = () => {
     return useContext(AuthContext);
@@ -17,24 +19,6 @@ export const AuthProvider = ({ children }) => {
         refreshToken: null,
         authenticated: false,
     });
-
-
-    // useEffect(() => {
-    //     const loadToken = async () => {
-    //         const token = await SecureStore.getItemAsync(TOKEN_KEY);
-    //         console.log('stored:', token);
-    //
-    //         if (token) {
-    //             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    //             setAuthState({
-    //                 token: token,
-    //                 authenticated: true,
-    //             });
-    //         }
-    //     };
-    //
-    //     loadToken();
-    // }, []);
 
     useEffect(() => {
         const loadTokens = async () => {

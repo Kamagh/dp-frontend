@@ -13,7 +13,7 @@ export default function Header() {
             {/*       style={{width: 45, height: 45, borderRadius: 99}}/>*/}
             {/*<Image source={require('../../../assets/images/logo.png')}*/}
             {/*       style={{width: 45, height: 45}}/>*/}
-            <FontAwesome name='filter' size={26} color='white'/>
+            {/*<FontAwesome name='filter' size={26} color='white'/>*/}
         </View>
     )
 }

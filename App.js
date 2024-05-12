@@ -28,7 +28,7 @@ export const Layout = () => {
     return (
         <NavigationContainer>
             <Stack.Navigator>
-                {authState?.authenticated ? (
+                {/*{authState?.authenticated ? (*/}
                     <Stack.Screen
                         name="Home"
                         component={TabNavigation}  // Make sure this component is correctly imported or defined
@@ -36,9 +36,9 @@ export const Layout = () => {
                             headerRight: () => <Button onPress={onLogout} title="Sign Out" />
                         }}
                     />
-                ) : (
-                    <Stack.Screen name="Login" component={LoginScreen} /> // Adjust the LoginScreen import based on your app setup
-                )}
+                {/*) : (*/}
+                {/*    <Stack.Screen name="Login" component={LoginScreen} /> // Adjust the LoginScreen import based on your app setup*/}
+                {/*)}*/}
             </Stack.Navigator>
         </NavigationContainer>
     );
