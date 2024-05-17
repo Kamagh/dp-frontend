@@ -28,9 +28,9 @@ export default [
         latitude: 40.8791 + (Math.random() * 0.05 - 0.025),  // Larger variation for more spread
         longitude: 45.1471 + (Math.random() * 0.05 - 0.025),
         products: [
-            { id: 300 + i * 3 + 1, name: 'Pain Reliever', price: Math.random() * 10 + 5 },
-            { id: 300 + i * 3 + 2, name: 'Allergy Medicine', price: Math.random() * 10 + 5 },
-            { id: 300 + i * 3 + 3, name: 'Antacid', price: Math.random() * 5 + 2 },
+            { id: 300 + i * 3 + 1, name: 'Pain Reliever', price: 10 },
+            { id: 300 + i * 3 + 2, name: 'Allergy Medicine', price: 10 },
+            { id: 300 + i * 3 + 3, name: 'Antacid', price: 10 },
         ],
     })),
 ];

@@ -2,10 +2,11 @@ import React from 'react'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from "../Screen/HomeScreen/HomeScreen";
 import CartScreen from "../Screen/CartScreen/CartScreen";
-import { Ionicons } from '@expo/vector-icons';
+import {FontAwesome5, Ionicons} from '@expo/vector-icons';
 import Colors from "../Utils/Colors";
 
 const Tab = createBottomTabNavigator();
+
 export default function TabNavigation() {
     return (
         <Tab.Navigator
@@ -13,14 +14,13 @@ export default function TabNavigation() {
             headerShown: false,
         }}>
             <Tab.Screen
-                name='Search'
+                name='Map'
                 component={HomeScreen}
                 options={{
-                    tabBarLabel: 'Search',
+                    tabBarLabel: 'Map',
                     tabBarActiveTintColor: Colors.PRIMARY,
                     tabBarIcon:({color, size}) => (
-                        <Ionicons name="search" size={size} color={color} />
-                    )
+                        <FontAwesome5 name="map-marked-alt" size={size} color={color} />                    )
                 }}
             />
             <Tab.Screen

@@ -1,4 +1,5 @@
 import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import { WebView } from 'react-native-webview';
 import React, {useContext, useEffect, useRef, useState} from 'react'
 import MapView, {Callout, Marker, PROVIDER_GOOGLE} from "react-native-maps";
 import MapViewStyle from '../../Utils/MapViewStyle.json'
@@ -9,7 +10,7 @@ import ProductModal from "./components/ProductModal";
 import {MaterialIcons} from "@expo/vector-icons";
 
 
-export default function AppMapView({placeList}) {
+export default function AppMapView() {
     const initialRegion = {
         latitude: location ? location.latitude : 40.8789533,  // Fallback to default coords if location is not available
         longitude: location ? location.longitude : 45.1470833,
@@ -59,14 +60,6 @@ export default function AppMapView({placeList}) {
         setSelectedPharmacy(pharmacy);
     };
 
-    const onMarkerSelected = (marker) => {
-        Alert.alert(marker.name);
-    };
-
-    const calloutPressed = (ev) => {
-        console.log(ev);
-    };
-
     const onRegionChange = (region) => {
         console.log(region);
     };
@@ -100,13 +93,15 @@ export default function AppMapView({placeList}) {
                     }}
                     title={pharmacy.name}
                 >
-                    <MaterialIcons name="local-pharmacy" size={40} color="green" />
+                    <MaterialIcons name="local-pharmacy" size={40} color="green"/>
                     <Callout onPress={() => handleMarkerPress(pharmacy)}>
                         <View style={styles.calloutView}>
-                            <Image
-                                source={require('../../../assets/images/illustrations/pharmacy1.png')}
-                                style={styles.fullImage}
-                            />
+                                <WebView
+                                    // source={{ uri: 'https://ajp.com.au/wp-content/uploads/2023/02/158430627_l.jpg' }}
+                                    source={require('../../../assets/images/illustrations/pharmacy1.png')}
+                                    style={styles.fullImage}
+                                    resizeMode="cover"
+                                />
                             <View style={styles.overlayText}>
                                 <Text style={styles.calloutTitle}>{pharmacy.name}</Text>
                                 <Text style={styles.detailsText}>Tap here for details!</Text>

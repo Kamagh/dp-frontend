@@ -1,48 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Button } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Alert, Button, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useCart} from "../../Context/CartContext";
+import {MaterialIcons} from '@expo/vector-icons';
+import CheckoutScreen from "../CheckoutScreen/CheckoutScreen";
 
-export default function CartScreen() {
-    // Example cart items (You would fetch this data from your context or navigation param)
-    const { cartItems, clearCart, removeFromCart } = useCart(); // Assuming removeFromCart method exists in context
+export default function CartScreen({navigation}) {
+    const {cartItems, clearCart, removeFromCart} = useCart();
     const [timer, setTimer] = useState(null);
-
-    // Calculate total price
-    const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    // const [openCheckout, setOpenCheckout] = useState(null)
 
     useEffect(() => {
         if (cartItems.length > 0 && timer === null) {
-            setTimer(300); // Start the timer when items are added
+            setTimer(300);
         }
 
         const countdown = timer !== null ? setInterval(() => {
             setTimer(prevTimer => prevTimer > 0 ? prevTimer - 1 : 0);
         }, 1000) : null;
 
-        // Clear interval on component unmount or timer stop
         return () => countdown && clearInterval(countdown);
     }, [cartItems.length, timer]);
 
-    // Clear cart when time expires
     useEffect(() => {
         if (timer === 0) {
-            clearCart(); // Clear cart using context function
-            alert('Time expired, cart has been cleared!');
+            clearCart();
+            Alert.alert('Notification', 'Time expired, cart has been cleared!');
+            setTimer(null);
         }
     }, [timer, clearCart]);
 
     const handleRemoveItem = (id) => {
         removeFromCart(id);
-        if (cartItems.length === 1) { // Check if this was the last item
-            setTimer(null); // Stop and reset timer if no items are left
+        if (cartItems.length === 1) {
+            setTimer(null); // If last item, reset timer
         }
     };
 
-    const handlePurchase = () => {
-        alert('Purchase successful!');
-        clearCart();
-        setTimer(null); // Stop and reset timer after purchase
-    };
+    const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
     return (
         <View style={styles.container}>
@@ -52,18 +46,38 @@ export default function CartScreen() {
                     <View key={item.id} style={styles.item}>
                         <Text>{item.name} - ${item.price} x {item.quantity}</Text>
                         <Text>Subtotal: ${item.price * item.quantity}</Text>
+                        <MaterialIcons
+                            name="delete"
+                            size={24}
+                            color="black"
+                            onPress={() => handleRemoveItem(item.id)}  // Add onPress handler to delete icon
+                            style={styles.deleteIcon}
+                        />
                     </View>
                 ))}
             </ScrollView>
             <Text style={styles.total}>Total: ${totalPrice.toFixed(2)}</Text>
-            <Text style={styles.timer}>Time remaining: {timer ? `${Math.floor(timer / 60)}:${('0' + timer % 60).slice(-2)}` : 'No active timer'}</Text>
-            <Button title="Buy Items" onPress={handlePurchase} />
-            <Button title="Clear Cart"  onPress={() => { clearCart(); setTimer(null); }} />
+            <Text style={styles.timer}>Time
+                remaining: {timer ? `${Math.floor(timer / 60)}:${('0' + timer % 60).slice(-2)}` : 'No active timer'}</Text>
+            <View style={styles.buttonContainer}>
+                {/*<Button title="Buy Items" onPress={() => navigation.navigate('Checkout')}/>*/}
+                <CheckoutScreen/>
+            </View>
+            <View style={[styles.buttonContainer, {marginTop: 5}]}>
+                <Button title="Clear Cart" onPress={() => {
+                    clearCart();
+                    setTimer(null);
+                }}/>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    buttonContainer: {
+        marginBottom: 5,
+        marginTop: 5,
+    },
     container: {
         flex: 1,
         padding: 20,
@@ -74,6 +88,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     item: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         marginVertical: 10,
         backgroundColor: '#f0f0f0',
         padding: 10,
@@ -87,5 +104,8 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: 'red',
         marginTop: 10,
+    },
+    deleteIcon: {
+        padding: 8,
     },
 });

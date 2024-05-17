@@ -10,7 +10,8 @@ import * as Location from 'expo-location';
 import {UserLocationContext} from "./App/Context/UserLocationContext";
 import {AuthProvider, useAuth} from './App/Context/AuthContext';
 import LoginScreen from "./App/Screen/LoginScreen/LoginScreen";
-import {CartProvider} from "./App/Context/CartContext"; // Ensure this path is correct
+import {CartProvider} from "./App/Context/CartContext";
+import {StripeProvider} from "@stripe/stripe-react-native";
 
 // Import custom fonts, replace these paths with your actual font files
 const customFonts = {
@@ -75,12 +76,14 @@ export default function App() {
     return (
         <AuthProvider>
             <UserLocationContext.Provider value={{location, setLocation}}>
-                <CartProvider>
-                    <View style={styles.container} onLayout={onLayoutRootView}>
-                        <Layout/>
-                        <StatusBar style="auto"/>
-                    </View>
-                </CartProvider>
+                <StripeProvider publishableKey={'pk_test_51PFgS3IiPYr1jImkpIFFYfzI6i0mfoORBhtIWLuh0louj1m12K50uxy1objCgeX20jPQ8kN4CWFAiLLHX0qMx0cO00TkEWUEAc'}>
+                    <CartProvider>
+                        <View style={styles.container} onLayout={onLayoutRootView}>
+                            <Layout/>
+                            <StatusBar style="auto"/>
+                        </View>
+                    </CartProvider>
+                </StripeProvider>
             </UserLocationContext.Provider>
         </AuthProvider>
     );

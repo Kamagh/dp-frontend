@@ -2,7 +2,7 @@ import {StyleSheet, View} from 'react-native'
 import React from 'react'
 import AppMapView from "./AppMapView";
 import Header from "./Header";
-import SearchBar from "./SearchBar";
+// import SearchBar from "./SearchBar";
 
 export default function HomeScreen() {
 
@@ -10,7 +10,7 @@ export default function HomeScreen() {
         <View>
             <View style={styles.headerContainer}>
                 <Header/>
-                <SearchBar searchedLocation={(location) => console.log(location)}/>
+                {/*<SearchBar searchedLocation={(location) => console.log(location)}/>*/}
             </View>
             <AppMapView />
         </View>
