@@ -1,39 +1,67 @@
-import React, {useEffect, useState} from 'react';
-import {Alert, Button, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {useCart} from "../../Context/CartContext";
-import {MaterialIcons} from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCart } from "../../Context/CartContext";
+import { MaterialIcons } from '@expo/vector-icons';
 import CheckoutScreen from "../CheckoutScreen/CheckoutScreen";
 
-export default function CartScreen({navigation}) {
-    const {cartItems, clearCart, removeFromCart} = useCart();
-    const [timer, setTimer] = useState(null);
-    // const [openCheckout, setOpenCheckout] = useState(null)
+export default function CartScreen({ navigation }) {
+    const { cartItems, clearCart, removeFromCart } = useCart();
+    const [reservationStatus, setReservationStatus] = useState({});
 
     useEffect(() => {
-        if (cartItems.length > 0 && timer === null) {
-            setTimer(300);
-        }
+        const timers = {};
 
-        const countdown = timer !== null ? setInterval(() => {
-            setTimer(prevTimer => prevTimer > 0 ? prevTimer - 1 : 0);
-        }, 1000) : null;
+        cartItems.forEach(item => {
+            if (reservationStatus[item.id] && reservationStatus[item.id].remainingTime > 0) {
+                timers[item.id] = setInterval(() => {
+                    setReservationStatus(prevState => {
+                        const newTime = prevState[item.id].remainingTime - 1;
+                        if (newTime <= 0) {
+                            clearInterval(timers[item.id]);
+                            return {
+                                ...prevState,
+                                [item.id]: {
+                                    ...prevState[item.id],
+                                    remainingTime: 0,
+                                    reserved: false,
+                                    reservationsLeft: prevState[item.id].reservationsLeft - 1,
+                                }
+                            };
+                        }
+                        return {
+                            ...prevState,
+                            [item.id]: {
+                                ...prevState[item.id],
+                                remainingTime: newTime,
+                            }
+                        };
+                    });
+                }, 1000);
+            }
+        });
 
-        return () => countdown && clearInterval(countdown);
-    }, [cartItems.length, timer]);
+        return () => {
+            Object.values(timers).forEach(clearInterval);
+        };
+    }, [cartItems, reservationStatus]);
 
-    useEffect(() => {
-        if (timer === 0) {
-            clearCart();
-            Alert.alert('Notification', 'Time expired, cart has been cleared!');
-            setTimer(null);
-        }
-    }, [timer, clearCart]);
+    const handleReserveItem = (id) => {
+        setReservationStatus(prevState => ({
+            ...prevState,
+            [id]: {
+                reserved: true,
+                remainingTime: 100, // 5 minutes
+                reservationsLeft: prevState[id] ? prevState[id].reservationsLeft - 1 : 2, // Maximum 3 reservations per day
+            }
+        }));
+    };
 
     const handleRemoveItem = (id) => {
         removeFromCart(id);
-        if (cartItems.length === 1) {
-            setTimer(null); // If last item, reset timer
-        }
+        setReservationStatus(prevState => {
+            const { [id]: _, ...rest } = prevState;
+            return rest;
+        });
     };
 
     const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -44,40 +72,49 @@ export default function CartScreen({navigation}) {
             <ScrollView>
                 {cartItems.map(item => (
                     <View key={item.id} style={styles.item}>
-                        <Text>{item.name} - ${item.price} x {item.quantity}</Text>
-                        <Text>Subtotal: ${item.price * item.quantity}</Text>
+                        <View style={styles.itemDetails}>
+                            <Text>{item.name} - ${item.price} x {item.quantity}</Text>
+                            <Text>Subtotal: ${item.price * item.quantity}</Text>
+                        </View>
                         <MaterialIcons
                             name="delete"
                             size={24}
                             color="black"
-                            onPress={() => handleRemoveItem(item.id)}  // Add onPress handler to delete icon
+                            onPress={() => handleRemoveItem(item.id)}
                             style={styles.deleteIcon}
                         />
+                        <View style={styles.reserveContainer}>
+                            {reservationStatus[item.id] && reservationStatus[item.id].reserved ? (
+                                <Text style={styles.timer}>
+                                    {Math.floor(reservationStatus[item.id].remainingTime / 60)}:{('0' + reservationStatus[item.id].remainingTime % 60).slice(-2)}
+                                </Text>
+                            ) : (
+                                <Button
+                                    title={reservationStatus[item.id] && reservationStatus[item.id].reservationsLeft <= 0 ? "No Reserves Left" : "Reserve"}
+                                    onPress={() => handleReserveItem(item.id)}
+                                    disabled={reservationStatus[item.id] && reservationStatus[item.id].reservationsLeft <= 0}
+                                />
+                            )}
+                        </View>
                     </View>
                 ))}
             </ScrollView>
             <Text style={styles.total}>Total: ${totalPrice.toFixed(2)}</Text>
-            <Text style={styles.timer}>Time
-                remaining: {timer ? `${Math.floor(timer / 60)}:${('0' + timer % 60).slice(-2)}` : 'No active timer'}</Text>
             <View style={styles.buttonContainer}>
                 {/*<Button title="Buy Items" onPress={() => navigation.navigate('Checkout')}/>*/}
                 <CheckoutScreen/>
             </View>
-            <View style={[styles.buttonContainer, {marginTop: 5}]}>
+            <View style={styles.buttonContainer}>
                 <Button title="Clear Cart" onPress={() => {
                     clearCart();
-                    setTimer(null);
-                }}/>
+                    setReservationStatus({});
+                }} />
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    buttonContainer: {
-        marginBottom: 5,
-        marginTop: 5,
-    },
     container: {
         flex: 1,
         padding: 20,
@@ -95,17 +132,26 @@ const styles = StyleSheet.create({
         backgroundColor: '#f0f0f0',
         padding: 10,
     },
+    itemDetails: {
+        flex: 1,
+    },
     total: {
         fontSize: 18,
         fontWeight: 'bold',
         marginTop: 20,
     },
+    deleteIcon: {
+        padding: 8,
+    },
+    reserveContainer: {
+        alignItems: 'center',
+    },
     timer: {
         fontSize: 18,
         color: 'red',
-        marginTop: 10,
     },
-    deleteIcon: {
-        padding: 8,
+    buttonContainer: {
+        marginBottom: 5,
+        marginTop: 5,
     },
 });

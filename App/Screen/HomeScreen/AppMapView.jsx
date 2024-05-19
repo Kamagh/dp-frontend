@@ -61,7 +61,7 @@ export default function AppMapView() {
     };
 
     const onRegionChange = (region) => {
-        console.log(region);
+        console.log('region', region);
     };
 
 

@@ -1,13 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'my-jwt';
-const API_URL = 'https://localhost:8080';
+const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app/api/auth'; // Use your ngrok URL
+
 const AuthContext = createContext({});
-
-// const API_URL = 'https://api.developerbetterapps.com';
-
 
 export const useAuth = () => {
     return useContext(AuthContext);
@@ -43,26 +41,16 @@ export const AuthProvider = ({ children }) => {
         if (authState.authenticated && authState.token && authState.refreshToken) {
             const interval = setInterval(() => {
                 refreshToken();
-            }, 15 * 60 * 1000 - 60000); // Refresh every 14 minutes
+            }, 14 * 60 * 1000); // Refresh every 14 minutes
 
             return () => clearInterval(interval);
         }
     }, [authState.authenticated, authState.token, authState.refreshToken]);
 
-
-
-    const register = async (email, password) => {
+    const register = async (firstName, lastName, email, password) => {
         try {
-            return await axios.post(`${API_URL}/users`, { email, password });
-        } catch (e) {
-            return { error: true, msg: e.response.data.msg };
-        }
-    };
-
-    const login = async (email, password) => {
-        try {
-            const result = await axios.post(`${API_URL}/auth/login`, { email, password });
-            const { accessToken, refreshToken } = result.data;
+            const response = await axios.post(`${API_URL}/sign-up`, { firstName, lastName, email, password });
+            const { accessToken, refreshToken } = response.data;
 
             setAuthState({
                 token: accessToken,
@@ -74,13 +62,34 @@ export const AuthProvider = ({ children }) => {
             await SecureStore.setItemAsync('accessToken', accessToken);
             await SecureStore.setItemAsync('refreshToken', refreshToken);
 
-            return result;
+            return response;
         } catch (e) {
             console.error(e);
-            return { error: true, msg: e.response.data.msg };
+            return { error: true, msg: e.response.data.message };
         }
     };
 
+    const login = async (email, password) => {
+        try {
+            const response = await axios.post(`${API_URL}/sign-in`, { email, password });
+            const { accessToken, refreshToken } = response.data;
+
+            setAuthState({
+                token: accessToken,
+                refreshToken: refreshToken,
+                authenticated: true
+            });
+
+            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            await SecureStore.setItemAsync('accessToken', accessToken);
+            await SecureStore.setItemAsync('refreshToken', refreshToken);
+
+            return response;
+        } catch (e) {
+            console.error(e);
+            return { error: true, msg: e.response.data.message };
+        }
+    };
 
     const logout = async () => {
         await SecureStore.deleteItemAsync('accessToken');
@@ -94,15 +103,14 @@ export const AuthProvider = ({ children }) => {
         });
     };
 
-
     const refreshToken = async () => {
         try {
             const storedRefreshToken = await SecureStore.getItemAsync('refreshToken');
-            const response = await axios.post(`${API_URL}/auth/refresh`, {
+            const response = await axios.post(`${API_URL}/refresh`, {
                 refreshToken: storedRefreshToken,
             });
 
-            const { accessToken, newRefreshToken } = response.data;
+            const { accessToken, refreshToken: newRefreshToken } = response.data;
 
             setAuthState(prevState => ({
                 ...prevState,

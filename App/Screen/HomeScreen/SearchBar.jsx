@@ -12,7 +12,6 @@ export default function SearchBar({searchedLocation}) {
                 onPress={(data, details = null) => {
                     // 'details' is provided when fetchDetails = true
                     searchedLocation(details?.geometry?.location)
-                    console.log(data, details);
                 }}
                 query={{
                     key: 'AIzaSyAty0r5wHOXSwEEggsARL33tWguPC7nEAw',

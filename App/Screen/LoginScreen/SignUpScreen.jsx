@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image } from 'react-native';
 import { useAuth } from '../../Context/AuthContext';
 
-const LoginScreen = ({ navigation }) => {
+const SignUpScreen = () => {
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { onLogin } = useAuth();
+    const { onRegister } = useAuth();
 
-    const login = async () => {
-        const result = await onLogin(email, password);
+    const register = async () => {
+        const result = await onRegister(firstName, lastName, email, password);
         if (result && result.error) {
             alert(result.msg);
+        } else {
+            alert('Registration successful! Please log in.');
         }
     };
 
@@ -18,6 +22,18 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.container}>
             <Image source={{}} style={styles.image} />
             <View style={styles.form}>
+                <TextInput
+                    style={styles.input}
+                    placeholder={'First Name'}
+                    onChangeText={(text) => setFirstName(text)}
+                    value={firstName}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder={'Last Name'}
+                    onChangeText={(text) => setLastName(text)}
+                    value={lastName}
+                />
                 <TextInput
                     style={styles.input}
                     placeholder={'Email'}
@@ -31,8 +47,7 @@ const LoginScreen = ({ navigation }) => {
                     onChangeText={(text) => setPassword(text)}
                     value={password}
                 />
-                <Button onPress={login} title={'Sign in'} />
-                <Button onPress={() => navigation.navigate('SignUp')} title={'Sign up'} />
+                <Button onPress={register} title={'Sign up'} />
             </View>
         </View>
     );
@@ -63,4 +78,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default LoginScreen;
+export default SignUpScreen;

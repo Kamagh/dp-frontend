@@ -1,56 +1,60 @@
-import {Alert, Button} from "react-native";
-import {useEffect, useState} from "react";
-import {useStripe} from "@stripe/stripe-react-native";
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { useStripe } from "@stripe/stripe-react-native";
 
 export default function CheckoutScreen() {
-    const API_URL = 'https://localhost:8080';
-    const {initPaymentSheet, presentPaymentSheet} = useStripe();
+    const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app'; // Replace with your actual backend URL
+    const { initPaymentSheet, presentPaymentSheet } = useStripe();
     const [loading, setLoading] = useState(false);
+    const [initialized, setInitialized] = useState(false);
 
     const fetchPaymentSheetParams = async () => {
-        const response = await fetch(`${API_URL}/payment-sheet`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const {paymentIntent, ephemeralKey, customer} = await response.json();
-
-        return {
-            paymentIntent,
-            ephemeralKey,
-            customer,
-        };
+        try {
+            const response = await fetch(`${API_URL}/payment-sheet`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const { paymentIntent, ephemeralKey, customer } = await response.json();
+            return { paymentIntent, ephemeralKey, customer };
+        } catch (error) {
+            console.error('Error fetching payment sheet params:', error);
+            Alert.alert('Error', 'Unable to fetch payment sheet parameters.');
+            setLoading(false);
+        }
     };
 
     const initializePaymentSheet = async () => {
-        const {
-            paymentIntent,
-            ephemeralKey,
-            customer,
-            publishableKey,
-        } = await fetchPaymentSheetParams();
+        const params = await fetchPaymentSheetParams();
+        if (!params) return;
 
-        const {error} = await initPaymentSheet({
+        const { paymentIntent, ephemeralKey, customer } = params;
+        const { error } = await initPaymentSheet({
             merchantDisplayName: "disp, Inc.",
             customerId: customer,
             customerEphemeralKeySecret: ephemeralKey,
             paymentIntentClientSecret: paymentIntent,
-            // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
-            //methods that complete payment after a delay, like SEPA Debit and Sofort.
             allowsDelayedPaymentMethods: false,
-            defaultBillingDetails: {
-                name: 'Jane Doe',
-            }
+            defaultBillingDetails: { name: 'Jane Doe' },
         });
 
         if (!error) {
-            setLoading(true);
+            setLoading(false);
+            setInitialized(true);
+        } else {
+            Alert.alert('Error', error.message);
+            setLoading(false);
         }
     };
 
     const openPaymentSheet = async () => {
-        const {error} = await presentPaymentSheet();
+        if (!initialized) {
+            Alert.alert('Error', 'Payment sheet not initialized');
+            return;
+        }
+
+        const { error } = await presentPaymentSheet();
 
         if (error) {
             Alert.alert(`Error code: ${error.code}`, error.message);
@@ -59,12 +63,23 @@ export default function CheckoutScreen() {
         }
     };
 
-
     useEffect(() => {
+        setLoading(true);
         initializePaymentSheet();
     }, []);
 
     return (
+        // <View style={styles.container}>
+        //     {loading ? (
+        //         <ActivityIndicator size="large" color="#0000ff" />
+        //     ) : (
+        //         <Button
+        //             title="Checkout"
+        //             onPress={openPaymentSheet}
+        //             disabled={!initialized}
+        //         />
+        //     )}
+        // </View>
         <>
             <Button
                 variant="primary"
@@ -75,3 +90,11 @@ export default function CheckoutScreen() {
         </>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api'; // Update with your backend URL
+const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app/api'; // Update with your backend URL
 
 export const getProducts = async () => {
     try {
