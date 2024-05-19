@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { registerUser, loginUser, refreshToken as refreshUserToken, revokeRefreshToken } from '../../api/api';
 
 const TOKEN_KEY = 'my-jwt';
-const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app/api/auth'; // Use your ngrok URL
-
 const AuthContext = createContext({});
 
 export const useAuth = () => {
@@ -36,12 +35,11 @@ export const AuthProvider = ({ children }) => {
         loadTokens();
     }, []);
 
-
     useEffect(() => {
         if (authState.authenticated && authState.token && authState.refreshToken) {
             const interval = setInterval(() => {
                 refreshToken();
-            }, 14 * 60 * 1000); // Refresh every 14 minutes
+            }, 15 * 60 * 1000 - 60000); // Refresh every 14 minutes
 
             return () => clearInterval(interval);
         }
@@ -49,8 +47,8 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (firstName, lastName, email, password) => {
         try {
-            const response = await axios.post(`${API_URL}/sign-up`, { firstName, lastName, email, password });
-            const { accessToken, refreshToken } = response.data;
+            const data = await registerUser(firstName, lastName, email, password);
+            const { accessToken, refreshToken } = data;
 
             setAuthState({
                 token: accessToken,
@@ -62,7 +60,7 @@ export const AuthProvider = ({ children }) => {
             await SecureStore.setItemAsync('accessToken', accessToken);
             await SecureStore.setItemAsync('refreshToken', refreshToken);
 
-            return response;
+            return data;
         } catch (e) {
             console.error(e);
             return { error: true, msg: e.response.data.message };
@@ -71,8 +69,8 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post(`${API_URL}/sign-in`, { email, password });
-            const { accessToken, refreshToken } = response.data;
+            const data = await loginUser(email, password);
+            const { accessToken, refreshToken } = data;
 
             setAuthState({
                 token: accessToken,
@@ -84,7 +82,7 @@ export const AuthProvider = ({ children }) => {
             await SecureStore.setItemAsync('accessToken', accessToken);
             await SecureStore.setItemAsync('refreshToken', refreshToken);
 
-            return response;
+            return data;
         } catch (e) {
             console.error(e);
             return { error: true, msg: e.response.data.message };
@@ -106,11 +104,9 @@ export const AuthProvider = ({ children }) => {
     const refreshToken = async () => {
         try {
             const storedRefreshToken = await SecureStore.getItemAsync('refreshToken');
-            const response = await axios.post(`${API_URL}/refresh`, {
-                refreshToken: storedRefreshToken,
-            });
+            const data = await refreshUserToken(storedRefreshToken);
 
-            const { accessToken, refreshToken: newRefreshToken } = response.data;
+            const { accessToken, newRefreshToken } = data;
 
             setAuthState(prevState => ({
                 ...prevState,

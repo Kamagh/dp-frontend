@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image } from 'react-native';
 import { useAuth } from '../../Context/AuthContext';
 
-const SignUpScreen = () => {
+const SignUpScreen = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -12,15 +12,18 @@ const SignUpScreen = () => {
     const register = async () => {
         const result = await onRegister(firstName, lastName, email, password);
         if (result && result.error) {
+            console.log('res', result)
             alert(result.msg);
         } else {
             alert('Registration successful! Please log in.');
+            navigation.navigate('Login'); // Navigate to login screen after successful registration
         }
     };
 
     return (
         <View style={styles.container}>
-            <Image source={{}} style={styles.image} />
+            <Image source={require('../../../assets/images/logo.png')} style={styles.logo} />
+            <Text style={styles.welcomeText}>Welcome to the Emergency Pharmacy Dispenser</Text>
             <View style={styles.form}>
                 <TextInput
                     style={styles.input}
@@ -47,34 +50,43 @@ const SignUpScreen = () => {
                     onChangeText={(text) => setPassword(text)}
                     value={password}
                 />
-                <Button onPress={register} title={'Sign up'} />
+                <Button onPress={register} title={'Sign up'} color="#007BFF" />
             </View>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    image: {
-        width: '50%',
-        height: '50%',
+    logo: {
+        width: 150,
+        height: 150,
         resizeMode: 'contain',
+        marginBottom: 20,
+    },
+    welcomeText: {
+        fontSize: 18,
+        marginBottom: 20,
+        color: '#333',
+        textAlign: 'center',
     },
     form: {
-        gap: 10,
         width: '80%',
     },
     input: {
         height: 44,
         borderWidth: 1,
+        borderColor: '#ccc',
         borderRadius: 4,
         padding: 10,
         backgroundColor: '#fff',
+        marginBottom: 15,
     },
     container: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        flex: 1,
         backgroundColor: '#f8f8f8',
+        padding: 20,
     },
 });
 

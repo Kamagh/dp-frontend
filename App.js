@@ -40,7 +40,7 @@ export const Layout = () => {
                             headerRight: () => <Button onPress={onLogout} title="Sign Out" />
                         }}
                     />
-                    <Stack.Screen name="ScanQR" component={ScanQRScreen} />
+                    {/*<Stack.Screen name="ScanQR" component={ScanQRScreen} />*/}
                 </>
             ) : (
                 <>
