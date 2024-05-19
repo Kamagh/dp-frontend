@@ -79,3 +79,16 @@ export const revokeRefreshToken = async (refreshToken) => {
         throw error;
     }
 };
+
+export const lockVendingMachine = async (vendingMachineId) => {
+    const { authState } = useAuth();
+
+    try {
+        await axios.post(`${API_URL}/vm/${vendingMachineId}/lock`, {
+            headers: getAuthHeaders(authState.token),
+        });
+    } catch (error) {
+        console.error('Error revoking refresh token:', error.message);
+        throw error;
+    }
+};

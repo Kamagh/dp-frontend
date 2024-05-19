@@ -13,7 +13,10 @@ import LoginScreen from "./App/Screen/LoginScreen/LoginScreen";
 import SignUpScreen from "./App/Screen/LoginScreen/SignUpScreen";
 import { CartProvider } from "./App/Context/CartContext";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import {LogBox} from 'react-native';
 import ScanQRScreen from "./App/Screen/ScanQRScreen/ScanQRScreen";
+
+LogBox.ignoreAllLogs();
 
 // Import custom fonts, replace these paths with your actual font files
 const customFonts = {

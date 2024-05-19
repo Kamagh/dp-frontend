@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useStripe } from "@stripe/stripe-react-native";
 import { useAuth } from '../../Context/AuthContext';
+import {lockVendingMachine} from "../../../api/api";
 
 export default function CheckoutScreen({ title, items, vendingMachineId, disabled }) {
     const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app/api'; // Replace with your actual backend URL
@@ -12,7 +13,9 @@ export default function CheckoutScreen({ title, items, vendingMachineId, disable
     const { authState } = useAuth(); // Assuming authState contains the accessToken
 
     const fetchPaymentSheetParams = async () => {
+        console.log('entered')
         try {
+            await lockVendingMachine(2);
             const response = await fetch(`${API_URL}/order`, {
                 method: 'POST',
                 headers: {
@@ -20,15 +23,24 @@ export default function CheckoutScreen({ title, items, vendingMachineId, disable
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    vending_machine_id: vendingMachineId,
-                    items
+                    vending_machine_id: /*vendingMachineId*/ 2,
+                    /*items*/
+                    items: [{
+                        item_id: 2,
+                        item_name: `Dav's product`,
+                        quantity: 3
+                    }]
+
                 })
             });
+            console.log('response checkout', response);
+            console.log('authState.token', authState.token);
+
             const { payment_intent_secret, ephemeral_key, customer_id } = await response.json();
             return { payment_intent_secret, ephemeral_key, customer_id };
         } catch (error) {
-            console.error('Error fetching payment sheet params:', error);
-            Alert.alert('Error', 'Unable to fetch payment sheet parameters.');
+            console.error('Error fetching payment sheet params:', error.message);
+            Alert.alert('Error', 'Unable to fetch payment sheet parameters.', error.message);
             setLoading(false);
         }
     };
@@ -78,11 +90,14 @@ export default function CheckoutScreen({ title, items, vendingMachineId, disable
 
     return (
         <View style={styles.container}>
-            <Button
-                title={title}
-                onPress={openPaymentSheet}
-                disabled={disabled || !initialized}
-            />
+            {loading && <ActivityIndicator size="large" color="#0000ff" />}
+            {!loading && (
+                <Button
+                    title={title}
+                    onPress={openPaymentSheet}
+                    disabled={disabled || !initialized}
+                />
+            )}
         </View>
     );
 }

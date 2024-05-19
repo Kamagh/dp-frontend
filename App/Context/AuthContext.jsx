@@ -119,7 +119,7 @@ export const AuthProvider = ({children}) => {
             await SecureStore.setItemAsync('refreshToken', refresh_token);
 
         } catch (error) {
-            console.error('Refresh token error:', error.message);
+            console.error('Refresh token error:', error.message, data);
             logout();  // Optionally logout the user if token refresh fails
         }
     };

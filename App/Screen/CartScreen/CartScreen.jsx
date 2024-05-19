@@ -101,7 +101,6 @@ export default function CartScreen({ navigation }) {
             </ScrollView>
             <Text style={styles.total}>Total: ${totalPrice.toFixed(2)}</Text>
             <View style={styles.buttonContainer}>
-                {/* <Button title="Buy Items" onPress={() => navigation.navigate('Checkout')}/> */}
                 <CheckoutScreen
                     title="Checkout Cart"
                     items={cartItems.map(item => ({
