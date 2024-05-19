@@ -1,16 +1,15 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import {createContext, useContext, useEffect, useState} from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { registerUser, loginUser, refreshToken as refreshUserToken, revokeRefreshToken } from '../../api/api';
+import {registerUser, loginUser, refreshToken as refreshUserToken, revokeRefreshToken} from '../../api/api';
 
-const TOKEN_KEY = 'my-jwt';
 const AuthContext = createContext({});
 
 export const useAuth = () => {
     return useContext(AuthContext);
 };
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({children}) => {
     const [authState, setAuthState] = useState({
         token: null,
         refreshToken: null,
@@ -39,7 +38,7 @@ export const AuthProvider = ({ children }) => {
         if (authState.authenticated && authState.token && authState.refreshToken) {
             const interval = setInterval(() => {
                 refreshToken();
-            }, 15 * 60 * 1000 - 60000); // Refresh every 14 minutes
+            }, 60*1000/*15 * 60 * 1000 - 60000*/); // Refresh every 14 minutes
 
             return () => clearInterval(interval);
         }
@@ -48,44 +47,44 @@ export const AuthProvider = ({ children }) => {
     const register = async (firstName, lastName, email, password) => {
         try {
             const data = await registerUser(firstName, lastName, email, password);
-            const { accessToken, refreshToken } = data;
+            const {access_token, refresh_token} = data;
 
             setAuthState({
-                token: accessToken,
-                refreshToken: refreshToken,
+                token: access_token,
+                refreshToken: refresh_token,
                 authenticated: true
             });
 
-            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            await SecureStore.setItemAsync('accessToken', accessToken);
-            await SecureStore.setItemAsync('refreshToken', refreshToken);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+            await SecureStore.setItemAsync('accessToken', access_token);
+            await SecureStore.setItemAsync('refreshToken', refresh_token);
 
             return data;
         } catch (e) {
             console.error(e);
-            return { error: true, msg: e.response.data.message };
+            return {error: true, msg: e.response?.data?.message || e.message};
         }
     };
 
     const login = async (email, password) => {
         try {
             const data = await loginUser(email, password);
-            const { accessToken, refreshToken } = data;
+
+            const {access_token, refresh_token} = data;
 
             setAuthState({
-                token: accessToken,
-                refreshToken: refreshToken,
+                token: access_token,
+                refreshToken: refresh_token,
                 authenticated: true
             });
 
-            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            await SecureStore.setItemAsync('accessToken', accessToken);
-            await SecureStore.setItemAsync('refreshToken', refreshToken);
-
+            axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+            await SecureStore.setItemAsync('accessToken', access_token);
+            await SecureStore.setItemAsync('refreshToken', refresh_token);
             return data;
         } catch (e) {
             console.error(e);
-            return { error: true, msg: e.response.data.message };
+            return {error: true, msg: e.response?.data?.message || e.message};
         }
     };
 
@@ -104,23 +103,23 @@ export const AuthProvider = ({ children }) => {
     const refreshToken = async () => {
         try {
             const storedRefreshToken = await SecureStore.getItemAsync('refreshToken');
-            const data = await refreshUserToken(storedRefreshToken);
 
-            const { accessToken, newRefreshToken } = data;
+            const data = await refreshUserToken(storedRefreshToken);
+            const {access_token, refresh_token} = data;
 
             setAuthState(prevState => ({
                 ...prevState,
-                token: accessToken,
-                refreshToken: newRefreshToken || storedRefreshToken,  // Use the old refresh token if a new one isn't provided
+                token: access_token,
+                refreshToken: refresh_token,
             }));
 
-            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            await SecureStore.setItemAsync('accessToken', accessToken);
-            if (newRefreshToken) {
-                await SecureStore.setItemAsync('refreshToken', newRefreshToken);
-            }
+            axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+
+            await SecureStore.setItemAsync('accessToken', access_token);
+            await SecureStore.setItemAsync('refreshToken', refresh_token);
+
         } catch (error) {
-            console.error('Refresh token error:', error);
+            console.error('Refresh token error:', error.message);
             logout();  // Optionally logout the user if token refresh fails
         }
     };

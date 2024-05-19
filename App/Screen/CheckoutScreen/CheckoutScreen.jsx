@@ -1,23 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useStripe } from "@stripe/stripe-react-native";
+import { useAuth } from '../../Context/AuthContext';
 
-export default function CheckoutScreen() {
-    const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app'; // Replace with your actual backend URL
+export default function CheckoutScreen({ title, items, vendingMachineId, disabled }) {
+    const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app/api'; // Replace with your actual backend URL
     const { initPaymentSheet, presentPaymentSheet } = useStripe();
     const [loading, setLoading] = useState(false);
     const [initialized, setInitialized] = useState(false);
 
+    const { authState } = useAuth(); // Assuming authState contains the accessToken
+
     const fetchPaymentSheetParams = async () => {
         try {
-            const response = await fetch(`${API_URL}/payment-sheet`, {
+            const response = await fetch(`${API_URL}/order`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${authState.token}`,
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({
+                    vending_machine_id: vendingMachineId,
+                    items
+                })
             });
-            const { paymentIntent, ephemeralKey, customer } = await response.json();
-            return { paymentIntent, ephemeralKey, customer };
+            const { payment_intent_secret, ephemeral_key, customer_id } = await response.json();
+            return { payment_intent_secret, ephemeral_key, customer_id };
         } catch (error) {
             console.error('Error fetching payment sheet params:', error);
             Alert.alert('Error', 'Unable to fetch payment sheet parameters.');
@@ -29,12 +37,12 @@ export default function CheckoutScreen() {
         const params = await fetchPaymentSheetParams();
         if (!params) return;
 
-        const { paymentIntent, ephemeralKey, customer } = params;
+        const { payment_intent_secret, ephemeral_key, customer_id } = params;
         const { error } = await initPaymentSheet({
-            merchantDisplayName: "disp, Inc.",
-            customerId: customer,
-            customerEphemeralKeySecret: ephemeralKey,
-            paymentIntentClientSecret: paymentIntent,
+            merchantDisplayName: "Disp, Inc.",
+            customerId: customer_id,
+            customerEphemeralKeySecret: ephemeral_key,
+            paymentIntentClientSecret: payment_intent_secret,
             allowsDelayedPaymentMethods: false,
             defaultBillingDetails: { name: 'Jane Doe' },
         });
@@ -69,25 +77,13 @@ export default function CheckoutScreen() {
     }, []);
 
     return (
-        // <View style={styles.container}>
-        //     {loading ? (
-        //         <ActivityIndicator size="large" color="#0000ff" />
-        //     ) : (
-        //         <Button
-        //             title="Checkout"
-        //             onPress={openPaymentSheet}
-        //             disabled={!initialized}
-        //         />
-        //     )}
-        // </View>
-        <>
+        <View style={styles.container}>
             <Button
-                variant="primary"
-                // disabled={!loading}
-                title="Checkout"
+                title={title}
                 onPress={openPaymentSheet}
+                disabled={disabled || !initialized}
             />
-        </>
+        </View>
     );
 }
 

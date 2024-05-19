@@ -64,8 +64,6 @@ export default function AppMapView() {
         console.log('region', region);
     };
 
-
-    console.log('location', location);
     return location?.latitude && (<View>
         <MapView style={styles.map}
                  initialRegion={initialRegion}

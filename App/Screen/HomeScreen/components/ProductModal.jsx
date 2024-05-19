@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Button } from 'react-native';
 import { useCart } from "../../../Context/CartContext";
+import CheckoutScreen from "../../CheckoutScreen/CheckoutScreen";
 
-const ProductModal = ({ visible, onClose, products }) => {
+const ProductModal = ({ visible, onClose, products, vendingMachineId }) => {
     const [quantities, setQuantities] = useState(products.reduce((acc, product) => {
         acc[product.id] = 0;  // Start all quantities at 0
         return acc;
@@ -38,7 +39,7 @@ const ProductModal = ({ visible, onClose, products }) => {
                     {products.map((product) => (
                         <View key={product.id} style={styles.productCard}>
                             <Image
-                                source={require( '../../../../assets/images/drug.png')}
+                                source={require('../../../../assets/images/drug.png')}
                                 style={styles.productImage}
                             />
                             <Text style={styles.productName}>{product.name}</Text>
@@ -52,7 +53,15 @@ const ProductModal = ({ visible, onClose, products }) => {
                                     <Button title="+" onPress={() => handleQuantityChange(product.id, 1)} />
                                 </View>
                             </View>
-                            <Button title="Buy Now" onPress={() => console.log('Purchased:', product)} />
+                            <CheckoutScreen
+                                title={'Buy Now'}
+                                items={[{
+                                    item_id: product.id,
+                                    quantity: quantities[product.id]
+                                }]}
+                                vendingMachineId={vendingMachineId}
+                                disabled={quantities[product.id] === 0}
+                            />
                         </View>
                     ))}
                 </ScrollView>

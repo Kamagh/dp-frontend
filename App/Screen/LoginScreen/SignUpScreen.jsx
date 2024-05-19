@@ -12,11 +12,8 @@ const SignUpScreen = ({ navigation }) => {
     const register = async () => {
         const result = await onRegister(firstName, lastName, email, password);
         if (result && result.error) {
-            console.log('res', result)
             alert(result.msg);
         } else {
-            alert('Registration successful! Please log in.');
-            navigation.navigate('Login'); // Navigate to login screen after successful registration
         }
     };
 

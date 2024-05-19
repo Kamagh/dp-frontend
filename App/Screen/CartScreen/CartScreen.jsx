@@ -101,8 +101,15 @@ export default function CartScreen({ navigation }) {
             </ScrollView>
             <Text style={styles.total}>Total: ${totalPrice.toFixed(2)}</Text>
             <View style={styles.buttonContainer}>
-                {/*<Button title="Buy Items" onPress={() => navigation.navigate('Checkout')}/>*/}
-                <CheckoutScreen/>
+                {/* <Button title="Buy Items" onPress={() => navigation.navigate('Checkout')}/> */}
+                <CheckoutScreen
+                    title="Checkout Cart"
+                    items={cartItems.map(item => ({
+                        item_id: item.id,
+                        quantity: item.quantity
+                    }))}
+                    vendingMachineId={1} // Replace with actual vending machine ID
+                />
             </View>
             <View style={styles.buttonContainer}>
                 <Button title="Clear Cart" onPress={() => {
