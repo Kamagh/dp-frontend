@@ -1,80 +1,61 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, Button, View, StyleSheet, ActivityIndicator } from 'react-native';
-import { useStripe } from "@stripe/stripe-react-native";
-import { useAuth } from '../../Context/AuthContext';
-import {lockVendingMachine} from "../../../api/api";
+import {useStripe} from "@stripe/stripe-react-native";
+import {useEffect, useState} from "react";
+import {ActivityIndicator, Alert, Button, View, StyleSheet} from "react-native";
 
-export default function CheckoutScreen({ title, items, vendingMachineId, disabled }) {
-    const API_URL = 'https://a0ef-5-77-254-89.ngrok-free.app/api'; // Replace with your actual backend URL
-    const { initPaymentSheet, presentPaymentSheet } = useStripe();
+export default function CheckoutScreen({title, items, vendingMachineId, disabled}) {
+    const {initPaymentSheet, presentPaymentSheet} = useStripe();
     const [loading, setLoading] = useState(false);
-    const [initialized, setInitialized] = useState(false);
-
-    const { authState } = useAuth(); // Assuming authState contains the accessToken
 
     const fetchPaymentSheetParams = async () => {
-        console.log('entered')
-        try {
-            await lockVendingMachine(2);
-            const response = await fetch(`${API_URL}/order`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authState.token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    vending_machine_id: /*vendingMachineId*/ 2,
-                    /*items*/
-                    items: [{
-                        item_id: 2,
-                        item_name: `Dav's product`,
-                        quantity: 3
-                    }]
+        const response = await fetch(`https://a0ef-5-77-254-89.ngrok-free.app/api/order`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: {
+                vending_machine_id: 2,
+                items: [{
+                    item_id: 2,
+                    item_name: `Dav's product`,
+                    quantity: 3
+                }],
+            }
+        });
 
-                })
-            });
-            console.log('response checkout', response);
-            console.log('authState.token', authState.token);
+        console.log(response);
 
-            const { payment_intent_secret, ephemeral_key, customer_id } = await response.json();
-            return { payment_intent_secret, ephemeral_key, customer_id };
-        } catch (error) {
-            console.error('Error fetching payment sheet params:', error.message);
-            Alert.alert('Error', 'Unable to fetch payment sheet parameters.', error.message);
-            setLoading(false);
-        }
+        const {payment_intent_secret, ephemeral_key, customer_id} = await response.json();
+
+        return {
+            payment_intent_secret, ephemeral_key, customer_id
+        };
     };
 
     const initializePaymentSheet = async () => {
-        const params = await fetchPaymentSheetParams();
-        if (!params) return;
+        const {
+            payment_intent_secret, ephemeral_key, customer_id,
+            publishableKey,
+        } = await fetchPaymentSheetParams();
 
-        const { payment_intent_secret, ephemeral_key, customer_id } = params;
-        const { error } = await initPaymentSheet({
-            merchantDisplayName: "Disp, Inc.",
+        const {error} = await initPaymentSheet({
+            merchantDisplayName: "Example, Inc.",
             customerId: customer_id,
             customerEphemeralKeySecret: ephemeral_key,
             paymentIntentClientSecret: payment_intent_secret,
-            allowsDelayedPaymentMethods: false,
-            defaultBillingDetails: { name: 'Jane Doe' },
+            // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
+            //methods that complete payment after a delay, like SEPA Debit and Sofort.
+            allowsDelayedPaymentMethods: true,
+            defaultBillingDetails: {
+                name: 'Jane Doe',
+            }
         });
-
         if (!error) {
-            setLoading(false);
-            setInitialized(true);
-        } else {
-            Alert.alert('Error', error.message);
-            setLoading(false);
+            setLoading(true);
         }
     };
 
     const openPaymentSheet = async () => {
-        if (!initialized) {
-            Alert.alert('Error', 'Payment sheet not initialized');
-            return;
-        }
-
-        const { error } = await presentPaymentSheet();
+        const {error} = await presentPaymentSheet();
 
         if (error) {
             Alert.alert(`Error code: ${error.code}`, error.message);
@@ -84,21 +65,28 @@ export default function CheckoutScreen({ title, items, vendingMachineId, disable
     };
 
     useEffect(() => {
-        setLoading(true);
         initializePaymentSheet();
     }, []);
 
     return (
         <View style={styles.container}>
-            {loading && <ActivityIndicator size="large" color="#0000ff" />}
+            {loading && <ActivityIndicator size="large" color="#0000ff"/>}
             {!loading && (
                 <Button
                     title={title}
                     onPress={openPaymentSheet}
-                    disabled={disabled || !initialized}
+                    disabled={!loading || disabled}
                 />
             )}
         </View>
+        // <Screen>
+        //     <Button
+        //         variant="primary"
+        //         disabled={!loading}
+        //         title="Checkout"
+        //         onPress={openPaymentSheet}
+        //     />
+        // </Screen>
     );
 }
 

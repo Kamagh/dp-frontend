@@ -23,18 +23,6 @@ export const getProducts = async () => {
     }
 };
 
-export const fetchPaymentSheetParams = async () => {
-    const { authState } = useAuth();
-    try {
-        const response = await axios.post(`${API_URL}/payment-sheet`, {}, {
-            headers: getAuthHeaders(authState.token),
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching payment sheet params:', error);
-        throw error;
-    }
-};
 
 export const registerUser = async (firstName, lastName, email, password) => {
     try {
@@ -88,7 +76,29 @@ export const lockVendingMachine = async (vendingMachineId) => {
             headers: getAuthHeaders(authState.token),
         });
     } catch (error) {
-        console.error('Error revoking refresh token:', error.message);
+        console.error('Error locking vending machine:', error.message);
+        throw error;
+    }
+};
+
+export const fetchPaymentSheetParams = async (vendingMachineId, items) => {
+    const { authState } = useAuth();
+
+    try {
+        // Lock the vending machine first
+        await lockVendingMachine(vendingMachineId);
+
+        const response = await axios.post(`${API_URL}/order`, {
+            vending_machine_id: vendingMachineId,
+            items: items,
+        }, {
+            headers: getAuthHeaders(authState.token),
+        });
+
+        const { payment_intent_secret, ephemeral_key, customer_id } = response.data;
+        return { payment_intent_secret, ephemeral_key, customer_id };
+    } catch (error) {
+        console.error('Error fetching payment sheet params:', response, error.message);
         throw error;
     }
 };
