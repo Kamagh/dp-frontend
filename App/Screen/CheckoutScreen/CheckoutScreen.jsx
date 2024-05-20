@@ -1,41 +1,60 @@
 import {useStripe} from "@stripe/stripe-react-native";
 import {useEffect, useState} from "react";
 import {ActivityIndicator, Alert, Button, View, StyleSheet} from "react-native";
+import {useAuth} from '../../Context/AuthContext';
+import {lockVendingMachine} from "../../../api/api";
 
 export default function CheckoutScreen({title, items, vendingMachineId, disabled}) {
     const {initPaymentSheet, presentPaymentSheet} = useStripe();
     const [loading, setLoading] = useState(false);
 
+    const {authState} = useAuth(); // Assuming authState contains the accessToken
+
     const fetchPaymentSheetParams = async () => {
-        const response = await fetch(`https://a0ef-5-77-254-89.ngrok-free.app/api/order`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: {
-                vending_machine_id: 2,
-                items: [{
-                    item_id: 2,
-                    item_name: `Dav's product`,
-                    quantity: 3
-                }],
-            }
-        });
+        try {
+            // await lockVendingMachine(2);
 
-        console.log(response);
+            const response = await fetch(`https://a0ef-5-77-254-89.ngrok-free.app/api/order`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authState.token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    vending_machine_id: 2,
+                    items: [{
+                        item_id: 2,
+                        item_name: `Dav's product`,
+                        quantity: 1
+                    }]
+                })
+            });
 
-        const {payment_intent_secret, ephemeral_key, customer_id} = await response.json();
+            const data = await response.json();
+            Alert.alert(data?.message);
+            setLoading(false);
 
-        return {
-            payment_intent_secret, ephemeral_key, customer_id
-        };
+            const {payment_intent_secret, ephemeral_key, customer_id, publishable_key} = data?.payment_data;
+
+            return {
+                payment_intent_secret, ephemeral_key, customer_id, publishable_key
+            };
+        } catch (error) {
+            Alert.alert(message)
+            console.log('Error', error.message());
+            throw error;
+        }
     };
 
     const initializePaymentSheet = async () => {
         const {
             payment_intent_secret, ephemeral_key, customer_id,
             publishableKey,
-        } = await fetchPaymentSheetParams();
+        } = await fetchPaymentSheetParams(2, [{
+            item_id: 2,
+            item_name: `Dav's product`,
+            quantity: 3
+        }]);
 
         const {error} = await initPaymentSheet({
             merchantDisplayName: "Example, Inc.",
@@ -45,11 +64,13 @@ export default function CheckoutScreen({title, items, vendingMachineId, disabled
             // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
             //methods that complete payment after a delay, like SEPA Debit and Sofort.
             allowsDelayedPaymentMethods: true,
+            appearance: customAppearance,
             defaultBillingDetails: {
                 name: 'Jane Doe',
             }
         });
-        if (!error) {
+
+        if (error) {
             setLoading(true);
         }
     };
@@ -70,14 +91,14 @@ export default function CheckoutScreen({title, items, vendingMachineId, disabled
 
     return (
         <View style={styles.container}>
-            {loading && <ActivityIndicator size="large" color="#0000ff"/>}
-            {!loading && (
+            {/*{loading && <ActivityIndicator size="large" color="#0000ff"/>}*/}
+            {/*{!loading && (*/}
                 <Button
                     title={title}
                     onPress={openPaymentSheet}
-                    disabled={!loading || disabled}
+                    disabled={disabled}
                 />
-            )}
+            {/*)}*/}
         </View>
         // <Screen>
         //     <Button
@@ -97,3 +118,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 });
+
+const customAppearance = {
+    shapes: {
+        borderRadius: 12,
+        borderWidth: 0.5,
+    },
+    primaryButton: {
+        shapes: {
+            borderRadius: 20,
+        },
+    },
+    colors: {
+        primary: '#fcfdff',
+        background: '#ffffff',
+        componentBackground: '#f3f8fa',
+        componentBorder: '#f3f8fa',
+        componentDivider: '#000000',
+        primaryText: '#000000',
+        secondaryText: '#000000',
+        componentText: '#000000',
+        placeholderText: '#73757b',
+    },
+};

@@ -15,6 +15,7 @@ import {CartProvider} from "./App/Context/CartContext";
 import {StripeProvider} from "@stripe/stripe-react-native";
 import {LogBox} from 'react-native';
 import ScanQRScreen from "./App/Screen/ScanQRScreen/ScanQRScreen";
+import CheckoutScreen from "./App/Screen/CheckoutScreen/CheckoutScreen";
 
 LogBox.ignoreAllLogs();
 
@@ -43,7 +44,7 @@ export const Layout = () => {
                             headerRight: () => <Button onPress={onLogout} title="Sign Out"/>
                         }}
                     />
-                    {/*<Stack.Screen name="ScanQR" component={ScanQRScreen} />*/}
+                    <Stack.Screen name="ScanQR" component={ScanQRScreen} />
                 </>
             ) : (
                 <>
@@ -101,6 +102,7 @@ export default function App() {
                             <NavigationContainer>
                                 <Layout/>
                                 <StatusBar style="auto"/>
+                                {/*<CheckoutScreen title={'Buy'} />*/}
                             </NavigationContainer>
                         </View>
                     </CartProvider>

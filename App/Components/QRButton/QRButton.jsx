@@ -15,11 +15,12 @@ const QRButton = ({ onPress }) => {
 
 const styles = StyleSheet.create({
     container: {
+        width: 60,
         position: 'absolute',
         alignItems: 'center',
         justifyContent: 'center',
         bottom: 25,
-        left: 0,
+        left: 160,
         right: 0,
     },
     button: {

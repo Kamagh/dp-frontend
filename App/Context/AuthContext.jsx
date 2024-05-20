@@ -38,7 +38,7 @@ export const AuthProvider = ({children}) => {
         if (authState.authenticated && authState.token && authState.refreshToken) {
             const interval = setInterval(() => {
                 refreshToken();
-            }, 60*1000/*15 * 60 * 1000 - 60000*/); // Refresh every 14 minutes
+            }, 10 * 60 * 1000/*15 * 60 * 1000 - 60000*/); // Refresh every 14 minutes
 
             return () => clearInterval(interval);
         }
