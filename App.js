@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {StatusBar} from 'expo-status-bar';
-import {Button, StyleSheet, View} from 'react-native';
+import {Button, LogBox, StyleSheet, View} from 'react-native';
 import {useFonts} from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import {NavigationContainer} from "@react-navigation/native";
@@ -13,9 +13,7 @@ import LoginScreen from "./App/Screen/LoginScreen/LoginScreen";
 import SignUpScreen from "./App/Screen/LoginScreen/SignUpScreen";
 import {CartProvider} from "./App/Context/CartContext";
 import {StripeProvider} from "@stripe/stripe-react-native";
-import {LogBox} from 'react-native';
 import ScanQRScreen from "./App/Screen/ScanQRScreen/ScanQRScreen";
-import CheckoutScreen from "./App/Screen/CheckoutScreen/CheckoutScreen";
 
 LogBox.ignoreAllLogs();
 
@@ -32,7 +30,7 @@ SplashScreen.preventAutoHideAsync();
 
 export const Layout = () => {
     const {authState, onLogout} = useAuth();  // Make sure useAuth() provides these
-
+    console.log(authState.token)
     return (
         <Stack.Navigator>
             {authState?.authenticated ? (
@@ -82,15 +80,6 @@ export default function App() {
     if (!fontsLoaded && !fontError) {
         return null; // Still loading or font load error
     }
-
-
-    // Add this in node_modules/react-dom/index.js
-    window.React1 = require('react');
-
-    // Add this in your component file
-    require('react-dom');
-    window.React2 = require('react');
-    console.log(window.React1 === window.React2);
 
     return (
         <AuthProvider>

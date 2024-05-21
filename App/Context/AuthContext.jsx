@@ -38,7 +38,7 @@ export const AuthProvider = ({children}) => {
         if (authState.authenticated && authState.token && authState.refreshToken) {
             const interval = setInterval(() => {
                 refreshToken();
-            }, 10 * 60 * 1000/*15 * 60 * 1000 - 60000*/); // Refresh every 14 minutes
+            }, 10 * 60 * 1000);
 
             return () => clearInterval(interval);
         }
@@ -105,6 +105,7 @@ export const AuthProvider = ({children}) => {
             const storedRefreshToken = await SecureStore.getItemAsync('refreshToken');
 
             const data = await refreshUserToken(storedRefreshToken);
+
             const {access_token, refresh_token} = data;
 
             setAuthState(prevState => ({
@@ -118,8 +119,11 @@ export const AuthProvider = ({children}) => {
             await SecureStore.setItemAsync('accessToken', access_token);
             await SecureStore.setItemAsync('refreshToken', refresh_token);
 
+            console.log('refresh data', data)
         } catch (error) {
-            console.error('Refresh token error:', error.message, data);
+            console.error('Refresh token error:', error.message);
+            console.log('refresh error', error)
+
             logout();  // Optionally logout the user if token refresh fails
         }
     };

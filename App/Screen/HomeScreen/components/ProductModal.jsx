@@ -1,14 +1,47 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Button } from 'react-native';
 import { useCart } from "../../../Context/CartContext";
 import CheckoutScreen from "../../CheckoutScreen/CheckoutScreen";
+import {getProductsByVendingMachine} from "../../../../api/api";
+import {useAuth} from "../../../Context/AuthContext";
 
-const ProductModal = ({ visible, onClose, products, vendingMachineId }) => {
-    const [quantities, setQuantities] = useState(products.reduce((acc, product) => {
-        acc[product.id] = 0;  // Start all quantities at 0
-        return acc;
-    }, {}));
+const images = {
+    'Acetaminophen': require('../../../../assets/images/drugs/Acetaminophen.jpg'),
+    'antacid': require('../../../../assets/images/drugs/antacid.jpg'),
+    'antihistamine': require('../../../../assets/images/drugs/antihistamine.jpg'),
+    'antiseptic-cream': require('../../../../assets/images/drugs/antiseptic-cream.jpg'),
+    'aspirin': require('../../../../assets/images/drugs/aspirin.jpg'),
+    'band': require('../../../../assets/images/drugs/band.jpg'),
+    'burn': require('../../../../assets/images/drugs/burn.jpg'),
+    'calamine': require('../../../../assets/images/drugs/calamine.jpg'),
+    'hydrogen-peroxide': require('../../../../assets/images/drugs/hydrogen-peroxide.jpg'),
+    'ibuprofen': require('../../../../assets/images/drugs/ibuprofen.jpg'),
+};
+
+const ProductModal = ({ visible, onClose, vendingMachineId }) => {
+    const { authState } = useAuth();
+    const [products, setProducts] = useState([]);
+    const [quantities, setQuantities] = useState({});
     const { addToCart } = useCart();
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            if (visible && vendingMachineId) {
+                try {
+                    const fetchedProducts = await getProductsByVendingMachine(vendingMachineId, authState);
+                    setProducts(fetchedProducts);
+                    setQuantities(fetchedProducts.reduce((acc, product) => {
+                        acc[product.item.id] = 0;  // Start all quantities at 0
+                        return acc;
+                    }, {}));
+                } catch (error) {
+                    console.error('Error fetching products:', error.message);
+                }
+            }
+        };
+
+        fetchProducts();
+    }, [visible, vendingMachineId]);
 
     const handleQuantityChange = (id, delta) => {
         setQuantities(currentQuantities => ({
@@ -18,15 +51,22 @@ const ProductModal = ({ visible, onClose, products, vendingMachineId }) => {
     };
 
     const handleAddToCart = () => {
-        const itemsToAdd = products.filter(product => quantities[product.id] > 0)
+        const itemsToAdd = products.filter(product => quantities[product.item.id] > 0)
             .map(product => ({
                 ...product,
-                quantity: quantities[product.id]
+                quantity: quantities[product.item.id]
             }));
         addToCart(itemsToAdd);
         onClose();  // Optionally close the modal after adding to cart
     };
 
+    // Function to dynamically require images based on the path
+    const getImage = (imagePath) => {
+        const imageName = imagePath.split('/').pop().split('.')[0]; // Get the image name without extension
+        return images[imageName] || require('../../../../assets/images/drug.png'); // Fallback image if not found
+    };
+
+    console.log('products', products[0]?.item.product.image);
     return (
         <Modal
             animationType="slide"
@@ -36,31 +76,38 @@ const ProductModal = ({ visible, onClose, products, vendingMachineId }) => {
         >
             <View style={styles.modalView}>
                 <ScrollView contentContainerStyle={styles.scrollView}>
-                    {products.map((product) => (
-                        <View key={product.id} style={styles.productCard}>
+                    {products.map(({ item }) => (
+                        <View key={item.id} style={styles.productCard}>
                             <Image
-                                source={require('../../../../assets/images/drug.png')}
+                                source={getImage(item.product.image)}
                                 style={styles.productImage}
                             />
-                            <Text style={styles.productName}>{product.name}</Text>
-                            <Text style={styles.productPrice}>{product.price}₮</Text>
+                            <Text style={styles.productName}>{item.product.name}</Text>
+                            <Text style={styles.productPrice}>{item.price}₮</Text>
+                            <Text style={styles.productDetails}>Dose: {item.dose.amount} {item.dose.unit}</Text>
+                            <Text style={styles.productDetails}>Type: {item.type}</Text>
+                            <Text style={styles.productDetails}>Instruction: {item.product.instruction}</Text>
+                            <Text style={styles.productDetails}>Storage: {item.product.storage_condition}</Text>
+                            <Text style={styles.productDetails}>Contraindication: {item.product.contraindication}</Text>
+                            <Text style={styles.productDetails}>Composition: {item.product.composition}</Text>
                             <View style={styles.quantityContainer}>
                                 <View style={styles.buttonWrapper}>
-                                    <Button title="-" onPress={() => handleQuantityChange(product.id, -1)} />
+                                    <Button title="-" onPress={() => handleQuantityChange(item.id, -1)} />
                                 </View>
-                                <Text style={styles.quantityText}>{quantities[product.id]}</Text>
+                                <Text style={styles.quantityText}>{quantities[item.id]}</Text>
                                 <View style={styles.buttonWrapper}>
-                                    <Button title="+" onPress={() => handleQuantityChange(product.id, 1)} />
+                                    <Button title="+" onPress={() => handleQuantityChange(item.id, 1)} />
                                 </View>
                             </View>
                             <CheckoutScreen
                                 title={'Buy Now'}
-                                items={[{
-                                    item_id: product.id,
-                                    quantity: quantities[product.id]
-                                }]}
+                                items={products.map(product => ({
+                                    item_id: product.item.id,
+                                    item_name: product.item.product.name,
+                                    quantity: quantities[product.item.id]
+                                }))}
                                 vendingMachineId={vendingMachineId}
-                                disabled={quantities[product.id] === 0}
+                                disabled={products.every(product => quantities[product.item.id] === 0)}
                             />
                         </View>
                     ))}
@@ -106,6 +153,10 @@ const styles = StyleSheet.create({
     productPrice: {
         fontSize: 14,
         marginBottom: 10,
+    },
+    productDetails: {
+        fontSize: 12,
+        marginBottom: 5,
     },
     quantityContainer: {
         flexDirection: 'row',
