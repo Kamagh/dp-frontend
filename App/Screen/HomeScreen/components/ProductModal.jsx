@@ -5,18 +5,6 @@ import CheckoutScreen from "../../CheckoutScreen/CheckoutScreen";
 import {getProductsByVendingMachine} from "../../../../api/api";
 import {useAuth} from "../../../Context/AuthContext";
 
-const images = {
-    'Acetaminophen': require('../../../../assets/images/drugs/Acetaminophen.jpg'),
-    'antacid': require('../../../../assets/images/drugs/antacid.jpg'),
-    'antihistamine': require('../../../../assets/images/drugs/antihistamine.jpg'),
-    'antiseptic-cream': require('../../../../assets/images/drugs/antiseptic-cream.jpg'),
-    'aspirin': require('../../../../assets/images/drugs/aspirin.jpg'),
-    'band': require('../../../../assets/images/drugs/band.jpg'),
-    'burn': require('../../../../assets/images/drugs/burn.jpg'),
-    'calamine': require('../../../../assets/images/drugs/calamine.jpg'),
-    'hydrogen-peroxide': require('../../../../assets/images/drugs/hydrogen-peroxide.jpg'),
-    'ibuprofen': require('../../../../assets/images/drugs/ibuprofen.jpg'),
-};
 
 const ProductModal = ({ visible, onClose, vendingMachineId }) => {
     const { authState } = useAuth();

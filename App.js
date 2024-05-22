@@ -14,6 +14,7 @@ import SignUpScreen from "./App/Screen/LoginScreen/SignUpScreen";
 import {CartProvider} from "./App/Context/CartContext";
 import {StripeProvider} from "@stripe/stripe-react-native";
 import ScanQRScreen from "./App/Screen/ScanQRScreen/ScanQRScreen";
+import CheckoutScreen from "./App/Screen/CheckoutScreen/CheckoutScreen";
 
 LogBox.ignoreAllLogs();
 

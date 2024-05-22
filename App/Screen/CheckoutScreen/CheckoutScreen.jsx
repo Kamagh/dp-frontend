@@ -24,6 +24,14 @@ export default function CheckoutScreen({ title, items, vendingMachineId, disable
                     vending_machine_id: vendingMachineId,
                     items
                 })
+                /*body: JSON.stringify({
+                    vending_machine_id: 6,
+                    items: [{
+                        item_id: 1,
+                        item_name: `Aspirin`,
+                        quantity: 1
+                    }]
+                })*/
             });
 
             const data = await response.json();
